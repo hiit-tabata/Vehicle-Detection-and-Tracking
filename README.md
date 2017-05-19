@@ -162,7 +162,7 @@ plt.title('HOG Visualization')
 ## 2. Vehicle Detection and Tracking
 
 
-![png](YOLO.png)
+![png](YOLO_.png)
 ```python
 ```
 
