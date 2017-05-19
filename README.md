@@ -404,7 +404,9 @@ The video below is the video that shows the BBox predicted in that trial.
 #### Credits:
 keras Darknet
 [Darknet.keras]: https://github.com/sunshineatnoon/Darknet.keras
+
 Paper:
 [YOLO]: https://arxiv.org/abs/1506.02640
+
 keras model
 [xslittlegrass]: https://github.com/xslittlegrass/CarND-Vehicle-Detection
