@@ -357,7 +357,7 @@ for i in range(len(batch)):
 
 
 ```python
-def frame_func(image):
+def preocessFrame(image):
     crop = image[300:650,500:,:]
     resized = cv2.resize(crop,(448,448))
     batch = np.array([resized[:,:,0],resized[:,:,1],resized[:,:,2]])
@@ -368,7 +368,7 @@ def frame_func(image):
 def process_video(source_file_name, output_file_name):
     white_output = output_file_name
     clip1 = VideoFileClip(source_file_name)
-    white_clip = clip1.fl_image(frame_func)
+    white_clip = clip1.fl_image(preocessFrame)
     %time white_clip.write_videofile(white_output, audio=False)
 ```
 
