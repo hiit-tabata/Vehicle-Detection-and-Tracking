@@ -41,10 +41,6 @@ from IPython.display import HTML
     Using TensorFlow backend.
 
 
-### Credits:
-Darknet.keras : https://github.com/sunshineatnoon/Darknet.keras
-
-
 ```python
 
 cars = glob.glob("./data/vehicles/*/*.png")
@@ -167,57 +163,7 @@ plt.title('HOG Visualization')
 
 
 ```python
-model = Sequential()
-model.add(Convolution2D(16, 3, 3,input_shape=(3,448,448),border_mode='same',subsample=(1,1)))
-model.add(LeakyReLU(alpha=0.1))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Convolution2D(32,3,3 ,border_mode='same'))
-model.add(LeakyReLU(alpha=0.1))
-model.add(MaxPooling2D(pool_size=(2, 2),border_mode='valid'))
-model.add(Convolution2D(64,3,3 ,border_mode='same'))
-model.add(LeakyReLU(alpha=0.1))
-model.add(MaxPooling2D(pool_size=(2, 2),border_mode='valid'))
-model.add(Convolution2D(128,3,3 ,border_mode='same'))
-model.add(LeakyReLU(alpha=0.1))
-model.add(MaxPooling2D(pool_size=(2, 2),border_mode='valid'))
-model.add(Convolution2D(256,3,3 ,border_mode='same'))
-model.add(LeakyReLU(alpha=0.1))
-model.add(MaxPooling2D(pool_size=(2, 2),border_mode='valid'))
-model.add(Convolution2D(512,3,3 ,border_mode='same'))
-model.add(LeakyReLU(alpha=0.1))
-model.add(MaxPooling2D(pool_size=(2, 2),border_mode='valid'))
-model.add(Convolution2D(1024,3,3 ,border_mode='same'))
-model.add(LeakyReLU(alpha=0.1))
-model.add(Convolution2D(1024,3,3 ,border_mode='same'))
-model.add(LeakyReLU(alpha=0.1))
-model.add(Convolution2D(1024,3,3 ,border_mode='same'))
-model.add(LeakyReLU(alpha=0.1))
-model.add(Flatten())
-model.add(Dense(256))
-model.add(Dense(4096))
-model.add(LeakyReLU(alpha=0.1))
-model.add(Dense(1470))
-```
-
-
-```python
-def load_weights(model,yolo_weight_file):
-
-    data = np.fromfile(yolo_weight_file,np.float32)
-    data=data[4:]
-
-    index = 0
-    for layer in model.layers:
-        shape = [w.shape for w in layer.get_weights()]
-        if shape != []:
-            kshape,bshape = shape
-            bia = data[index:index+np.prod(bshape)].reshape(bshape)
-            index += np.prod(bshape)
-            ker = data[index:index+np.prod(kshape)].reshape(kshape)
-            index += np.prod(kshape)
-            layer.set_weights([ker,bia])
-
-load_weights(model,'./yolo-tiny.weights')
+![png](YOLO.png)
 ```
 
 
@@ -446,3 +392,17 @@ The main challenge of training a network to predict the bounding box. The networ
 ```python
 
 ```
+
+#### Fail Trial
+I have try implement Faster RCNN, but the result not acceptable. (not yet fixed)
+The video below is the video that shows the BBox predicted in that trial.
+[![Fail video](https://img.youtube.com/vi/VX02gtydRtE/0.jpg)](https://youtu.be/VX02gtydRtE)
+
+
+#### Credits:
+keras Darknet
+[Darknet.keras]: https://github.com/sunshineatnoon/Darknet.keras
+Paper:
+[YOLO]: https://arxiv.org/abs/1506.02640
+keras model
+[xslittlegrass]: https://github.com/xslittlegrass/CarND-Vehicle-Detection
