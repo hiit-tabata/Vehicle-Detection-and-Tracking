@@ -33,15 +33,6 @@ from utils import Box, yolo_boxes, draw_box
 from moviepy.editor import VideoFileClip
 from IPython.display import HTML
 
-%matplotlib inline
-%load_ext autoreload
-%matplotlib inline
-```
-
-    Using TensorFlow backend.
-
-
-```python
 
 cars = glob.glob("./data/vehicles/*/*.png")
 non_cars = glob.glob("./data/non-vehicles/*/*.png")
@@ -194,11 +185,6 @@ plt.imshow(draw_box(boxes,plt.imread("./test_images/test1.jpg"),[[500,1280],[300
 
 
 
-    <matplotlib.image.AxesImage at 0x7fa442da34e0>
-
-
-
-
 ![png](output_19_1.png)
 
 
@@ -335,13 +321,6 @@ HTML("""
      97%|█████████▋| 38/39 [00:19<00:00,  1.97it/s]
 
 
-    [MoviePy] Done.
-    [MoviePy] >>>> Video ready: test_video_out.mp4
-
-    CPU times: user 2min 10s, sys: 4.63 s, total: 2min 14s
-    Wall time: 20.1 s
-
-
 
 
 
@@ -389,10 +368,6 @@ The main challenge of training a network to predict the bounding box. The networ
     It provide a more stable solution on predict the bounding box, ot use rpn network to predict the BBOX and then push to Roi pooling layer for other work. There are a new paper Masked RCNN, which extend Faster RCNN and provide image segmentation. Faster RCNN architecture have a better potential to implement different problem.
 
 
-```python
-
-```
-
 #### Fail Trial
 I have try implement Faster RCNN, but the result not acceptable. (not yet fixed)
 The video below is the video that shows the BBox predicted in that trial.
@@ -403,7 +378,8 @@ The video below is the video that shows the BBox predicted in that trial.
 
 #### Credits:
 keras Darknet
-![Darknet.keras]: https://github.com/sunshineatnoon/Darknet.keras
+
+Darknet.keras: https://github.com/sunshineatnoon/Darknet.keras
 
 Paper:
-![YOLO]: https://arxiv.org/abs/1506.02640
+YOLO: https://arxiv.org/abs/1506.02640
