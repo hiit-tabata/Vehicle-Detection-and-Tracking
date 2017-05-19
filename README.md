@@ -29,7 +29,7 @@ from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.core import Flatten, Dense, Activation, Reshape
 keras.backend.set_image_dim_ordering('th')
-from utils import Box, detect_box, draw_box
+from helper import Box, detect_box, draw_box
 from moviepy.editor import VideoFileClip
 from IPython.display import HTML
 
