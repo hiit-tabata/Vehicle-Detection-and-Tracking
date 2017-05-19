@@ -162,8 +162,8 @@ plt.title('HOG Visualization')
 ## 2. Vehicle Detection and Tracking
 
 
-```python
 ![png](YOLO.png)
+```python
 ```
 
 
@@ -396,6 +396,8 @@ The main challenge of training a network to predict the bounding box. The networ
 #### Fail Trial
 I have try implement Faster RCNN, but the result not acceptable. (not yet fixed)
 The video below is the video that shows the BBox predicted in that trial.
+
+
 [![Fail video](https://img.youtube.com/vi/VX02gtydRtE/0.jpg)](https://youtu.be/VX02gtydRtE)
 
 
