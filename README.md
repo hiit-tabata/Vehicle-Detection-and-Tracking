@@ -4,7 +4,7 @@
 The goals / steps of this project are the following:
 
 * Perform a Histogram of Oriented Gradients (HOG) feature extraction on a labeled training set of images and train a classifier Linear SVM classifier
-* Optionally, you can also apply a color transform and append binned color features, as well as histograms of color, to your HOG feature vector. 
+* Optionally, you can also apply a color transform and append binned color features, as well as histograms of color, to your HOG feature vector.
 * Note: for those first two steps don't forget to normalize your features and randomize a selection for training and testing.
 * Implement a sliding-window technique and use your trained classifier to search for vehicles in images.
 * Run your pipeline on a video stream (start with the test_video.mp4 and later implement on full project_video.mp4) and create a heat map of recurring detections frame by frame to reject outliers and follow detected vehicles.
@@ -12,7 +12,7 @@ The goals / steps of this project are the following:
 
 
 ```python
-import glob 
+import glob
 import cv2
 import numpy as np
 import skimage
@@ -90,19 +90,19 @@ TEST_FULL_IMG = mpimg.imread("./test_images/test1.jpg")
 ```
 
 ## 1. Histogram of Oriented Gradients (HOG)
-#### 1.1.1 Explain how (and identify where in your code) you extracted HOG features from the training images. 
+#### 1.1.1 Explain how (and identify where in your code) you extracted HOG features from the training images.
 
 
 ```python
 def process_hog_features(img, orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True):
     if vis == True:
         features, hog_image = hog(img, orientations=orient, pixels_per_cell=(pix_per_cell, pix_per_cell),
-                                  cells_per_block=(cell_per_block, cell_per_block), transform_sqrt=False, 
+                                  cells_per_block=(cell_per_block, cell_per_block), transform_sqrt=False,
                                   visualise=True, feature_vector=False)
         return features, hog_image
     else:      
         features = hog(img, orientations=orient, pixels_per_cell=(pix_per_cell, pix_per_cell),
-                       cells_per_block=(cell_per_block, cell_per_block), transform_sqrt=False, 
+                       cells_per_block=(cell_per_block, cell_per_block), transform_sqrt=False,
                        visualise=False, feature_vector=feature_vec)
         return features
 ```
@@ -202,10 +202,10 @@ model.add(Dense(1470))
 
 ```python
 def load_weights(model,yolo_weight_file):
-                
+
     data = np.fromfile(yolo_weight_file,np.float32)
     data=data[4:]
-    
+
     index = 0
     for layer in model.layers:
         shape = [w.shape for w in layer.get_weights()]
@@ -262,14 +262,14 @@ plt.imshow(draw_box(boxes,plt.imread("./test_images/test1.jpg"),[[500,1280],[300
 
 #### Sliding window search
 
-Since YOLO will output the 7X7X30 result, loop through the gird can get the prediction result. 
+Since YOLO will output the 7X7X30 result, loop through the gird can get the prediction result.
 The model will return two type result, Class probability map and Bounding Box & confidence
 
 probability map:  is a map of prob. of which class belongs with. 7X7X20 <~ 20 classes
 BBOX, confidence: is the prediction of classes 7X7X(2*5)
 
 ####  How did you decide what scales to search and how much to overlap windows?
-I combine the BBOX with IOU larger than 0.4. 
+I combine the BBOX with IOU larger than 0.4.
 ```
     boxes.sort(key=lambda b:b.prob,reverse=True)
     for i in range(len(boxes)):
@@ -287,14 +287,14 @@ I combine the BBOX with IOU larger than 0.4.
 
 ```python
 images = [plt.imread(file) for file in glob.glob('./test_images/*.jpg')]
-batch = np.array([np.transpose(cv2.resize(image[300:650,500:,:],(448,448)),(2,0,1)) 
+batch = np.array([np.transpose(cv2.resize(image[300:650,500:,:],(448,448)),(2,0,1))
                   for image in images])
 out = model.predict(((batch/255.)-0.5))
 
 for i in range(len(batch)):
     plt.figure()
     plt.title("original")   
-    plt.imshow(images[i]) 
+    plt.imshow(images[i])
     plt.figure()
     plt.title("localized")    
     boxes = yolo_boxes(out[i], threshold = 0.17)
@@ -376,11 +376,12 @@ def process_video(source_file_name, output_file_name):
 ```python
 process_video( "test_video.mp4", "test_video_out.mp4")
 HTML("""
-    <video controls src="{0}" loop=1 autoplay width=100%/> 
+    <video controls src="{0}" loop=1 autoplay width=100%/>
     """.format('test_video_out.mp4')
 )
 ```
 
+[![Demo video](https://img.youtube.com/vi/LXMgeIYOKN0/0.jpg)](https://youtu.be/LXMgeIYOKN0)
     [MoviePy] >>>> Building video test_video_out.mp4
     [MoviePy] Writing video test_video_out.mp4
 
@@ -389,8 +390,8 @@ HTML("""
 
 
     [MoviePy] Done.
-    [MoviePy] >>>> Video ready: test_video_out.mp4 
-    
+    [MoviePy] >>>> Video ready: test_video_out.mp4
+
     CPU times: user 2min 10s, sys: 4.63 s, total: 2min 14s
     Wall time: 20.1 s
 
@@ -399,8 +400,8 @@ HTML("""
 
 
 
-    <video controls src="test_video_out.mp4" loop=1 autoplay width=100%/> 
-    
+    <video controls src="test_video_out.mp4" loop=1 autoplay width=100%/>
+
 
 
 
@@ -408,19 +409,20 @@ HTML("""
 ```python
 process_video( "project_video.mp4", "project_video_out.mp4")
 HTML("""
-    <video controls src="{0}" loop=1 autoplay width=100%/> 
+    <video controls src="{0}" loop=1 autoplay width=100%/>
     """.format('project_video_out.mp4')
 )
 ```
 
+[![Demo video](https://img.youtube.com/vi/wUNJdbK-yLQ/0.jpg)](https://youtu.be/wUNJdbK-yLQ)
     [MoviePy] >>>> Building video project_video_out.mp4
     [MoviePy] Writing video project_video_out.mp4
-
+https://youtu.be/wUNJdbK-yLQ
 
      99%|█████████▊| 1244/1261 [11:39<00:09,  1.82it/s]
 
 ## 3. Discussion
-#### 3.1 Briefly discuss any problems / issues you faced in your implementation of this project. 
+#### 3.1 Briefly discuss any problems / issues you faced in your implementation of this project.
 
 I have try to implement Faster RCNN for object localization, but iy seems have problem in training. Thus i use pre-train YOLO for faster implemenation.
 
@@ -432,13 +434,13 @@ The main challenge of training a network to predict the bounding box. The networ
     Yolo using 7X7 feature grid to predict object prosition which loose many deatils of target object. The network will miss those data.
 - Vibrating BBOX
     The bbox keep vibrate through the video
-- BBox size are not prefect. 
+- BBox size are not prefect.
     Since the network is single flow architecture, which do not have other sub- network for refine BBOX position. YOLO architecture show the weakness of predict a full size of target object, for instance the black car in testing video. The BBox predict by YOLOnot always full cover the black car.  
 
 #### 3.3 What could you do to make it more robust?
 
 - Implement Faster RCNN
-    It provide a more stable solution on predict the bounding box, ot use rpn network to predict the BBOX and then push to Roi pooling layer for other work. There are a new paper Masked RCNN, which extend Faster RCNN and provide image segmentation. Faster RCNN architecture have a better potential to implement different problem. 
+    It provide a more stable solution on predict the bounding box, ot use rpn network to predict the BBOX and then push to Roi pooling layer for other work. There are a new paper Masked RCNN, which extend Faster RCNN and provide image segmentation. Faster RCNN architecture have a better potential to implement different problem.
 
 
 ```python
