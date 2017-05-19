@@ -5,4 +5,6 @@ output_.avi
 output_1.avi
 output_heatMap.avi
 test_video_out.mp4
-
+_pycache_/
+*.mp4
+*.weights

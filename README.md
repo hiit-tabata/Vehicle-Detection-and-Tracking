@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-##Writeup Template
-###You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
 
----
-
-**Vehicle Detection Project**
+# Vehicle Detection and Tracking
 
 The goals / steps of this project are the following:
 
@@ -15,98 +10,437 @@ The goals / steps of this project are the following:
 * Run your pipeline on a video stream (start with the test_video.mp4 and later implement on full project_video.mp4) and create a heat map of recurring detections frame by frame to reject outliers and follow detected vehicles.
 * Estimate a bounding box for vehicles detected.
 
-[//]: # (Image References)
-[image1]: ./examples/car_not_car.png
-[image2]: ./examples/HOG_example.jpg
-[image3]: ./examples/sliding_windows.jpg
-[image4]: ./examples/sliding_window.jpg
-[image5]: ./examples/bboxes_and_heat.png
-[image6]: ./examples/labels_map.png
-[image7]: ./examples/output_bboxes.png
-[video1]: ./project_video.mp4
 
-## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
-###Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
+```python
+import glob 
+import cv2
+import numpy as np
+import skimage
+import matplotlib.image as mpimg
+from skimage import data, color, exposure
+from sklearn.model_selection import train_test_split
+from skimage.feature import hog
+import matplotlib.pylab as plt
+import scipy
+import imutils
+import keras
+from keras.models import Sequential
+from keras.layers.convolutional import Convolution2D, MaxPooling2D
+from keras.layers.advanced_activations import LeakyReLU
+from keras.layers.core import Flatten, Dense, Activation, Reshape
+keras.backend.set_image_dim_ordering('th')
+from utils import Box, yolo_boxes, draw_box
+from moviepy.editor import VideoFileClip
+from IPython.display import HTML
 
----
-###Writeup / README
+%matplotlib inline
+%load_ext autoreload
+%matplotlib inline
+```
 
-####1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  [Here](https://github.com/udacity/CarND-Vehicle-Detection/blob/master/writeup_template.md) is a template writeup for this project you can use as a guide and a starting point.  
-
-You're reading it!
-
-###Histogram of Oriented Gradients (HOG)
-
-####1. Explain how (and identify where in your code) you extracted HOG features from the training images.
-
-The code for this step is contained in the first code cell of the IPython notebook (or in lines # through # of the file called `some_file.py`).  
-
-I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an example of one of each of the `vehicle` and `non-vehicle` classes:
-
-![alt text][image1]
-
-I then explored different color spaces and different `skimage.hog()` parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`).  I grabbed random images from each of the two classes and displayed them to get a feel for what the `skimage.hog()` output looks like.
-
-Here is an example using the `YCrCb` color space and HOG parameters of `orientations=8`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
+    Using TensorFlow backend.
 
 
-![alt text][image2]
-
-####2. Explain how you settled on your final choice of HOG parameters.
-
-I tried various combinations of parameters and...
-
-####3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
-
-I trained a linear SVM using...
-
-###Sliding Window Search
-
-####1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
-
-I decided to search random window positions at random scales all over the image and came up with this (ok just kidding I didn't actually ;):
-
-![alt text][image3]
-
-####2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
-
-Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
-
-![alt text][image4]
----
-
-### Video Implementation
-
-####1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
-Here's a [link to my video result](./project_video.mp4)
+### Credits:
+Darknet.keras : https://github.com/sunshineatnoon/Darknet.keras
 
 
-####2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
+```python
 
-I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  
+cars = glob.glob("./data/vehicles/*/*.png")
+non_cars = glob.glob("./data/non-vehicles/*/*.png")
 
-Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
+# make ground truth
+Y = np.concatenate([np.ones(len(cars)), np.zeros(len(non_cars))-1])
+# read X
+X = []
+for name in cars:    
+    X.append(skimage.io.imread(name))
+for name in non_cars:    
+    X.append(skimage.io.imread(name))
+X = np.array(X)
+```
 
-### Here are six frames and their corresponding heatmaps:
 
-![alt text][image5]
+```python
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.10, random_state=42)
 
-### Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames:
-![alt text][image6]
 
-### Here the resulting bounding boxes are drawn onto the last frame in the series:
-![alt text][image7]
+X_train = X_train.astype('float32')
+X_test = X_test.astype('float32')
+print('X_train shape:', X_train.shape)
+print(X_train.shape[0], 'train samples')
+print(X_test.shape[0], 'test samples')
+input_shape =  (3,64,64)
+```
+
+    X_train shape: (15984, 64, 64, 3)
+    15984 train samples
+    1776 test samples
 
 
 
----
+```python
+#load testing picture
 
-###Discussion
+TEST_IMG_RBG = mpimg.imread(cars[4])
+TEST_IMG_G = cv2.cvtColor(TEST_IMG_RBG, cv2.COLOR_RGB2GRAY)
 
-####1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
+TEST_FULL_IMG = mpimg.imread("./test_images/test1.jpg")
+```
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+## 1. Histogram of Oriented Gradients (HOG)
+#### 1.1.1 Explain how (and identify where in your code) you extracted HOG features from the training images. 
 
-=======
-# Vehicle-Detection-and-Tracking
->>>>>>> 28c1d96b7db34acdbf6f326221b35fad29d1dc9a
+
+```python
+def process_hog_features(img, orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True):
+    if vis == True:
+        features, hog_image = hog(img, orientations=orient, pixels_per_cell=(pix_per_cell, pix_per_cell),
+                                  cells_per_block=(cell_per_block, cell_per_block), transform_sqrt=False, 
+                                  visualise=True, feature_vector=False)
+        return features, hog_image
+    else:      
+        features = hog(img, orientations=orient, pixels_per_cell=(pix_per_cell, pix_per_cell),
+                       cells_per_block=(cell_per_block, cell_per_block), transform_sqrt=False, 
+                       visualise=False, feature_vector=feature_vec)
+        return features
+```
+
+#### 1.1.2 Explain how you settled on your final choice of HOG parameters.
+
+
+```python
+orient = 9
+pix_per_cell = 4
+cell_per_block = 2
+```
+
+
+```python
+# Call our function with vis=True to see an image output
+features, hog_image = process_hog_features(TEST_IMG_G, orient, pix_per_cell, cell_per_block, vis=True, feature_vec=False)
+```
+
+
+```python
+# Call our function with vis=True to see an image output
+features = process_hog_features(TEST_IMG_G, orient, pix_per_cell, cell_per_block, vis=False, feature_vec=False)
+```
+
+
+```python
+features.shape
+```
+
+
+
+
+    (15, 15, 2, 2, 9)
+
+
+
+
+```python
+# Plot the examples
+fig = plt.figure()
+plt.subplot(121)
+plt.imshow(TEST_IMG_G, cmap='gray')
+plt.title('Example Car Image')
+plt.subplot(122)
+plt.imshow(hog_image, cmap='gray')
+plt.title('HOG Visualization')
+```
+
+
+
+
+    <matplotlib.text.Text at 0x7fa44393f908>
+
+
+
+
+![png](output_13_1.png)
+
+
+## 2. Vehicle Detection and Tracking
+
+
+```python
+model = Sequential()
+model.add(Convolution2D(16, 3, 3,input_shape=(3,448,448),border_mode='same',subsample=(1,1)))
+model.add(LeakyReLU(alpha=0.1))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Convolution2D(32,3,3 ,border_mode='same'))
+model.add(LeakyReLU(alpha=0.1))
+model.add(MaxPooling2D(pool_size=(2, 2),border_mode='valid'))
+model.add(Convolution2D(64,3,3 ,border_mode='same'))
+model.add(LeakyReLU(alpha=0.1))
+model.add(MaxPooling2D(pool_size=(2, 2),border_mode='valid'))
+model.add(Convolution2D(128,3,3 ,border_mode='same'))
+model.add(LeakyReLU(alpha=0.1))
+model.add(MaxPooling2D(pool_size=(2, 2),border_mode='valid'))
+model.add(Convolution2D(256,3,3 ,border_mode='same'))
+model.add(LeakyReLU(alpha=0.1))
+model.add(MaxPooling2D(pool_size=(2, 2),border_mode='valid'))
+model.add(Convolution2D(512,3,3 ,border_mode='same'))
+model.add(LeakyReLU(alpha=0.1))
+model.add(MaxPooling2D(pool_size=(2, 2),border_mode='valid'))
+model.add(Convolution2D(1024,3,3 ,border_mode='same'))
+model.add(LeakyReLU(alpha=0.1))
+model.add(Convolution2D(1024,3,3 ,border_mode='same'))
+model.add(LeakyReLU(alpha=0.1))
+model.add(Convolution2D(1024,3,3 ,border_mode='same'))
+model.add(LeakyReLU(alpha=0.1))
+model.add(Flatten())
+model.add(Dense(256))
+model.add(Dense(4096))
+model.add(LeakyReLU(alpha=0.1))
+model.add(Dense(1470))
+```
+
+
+```python
+def load_weights(model,yolo_weight_file):
+                
+    data = np.fromfile(yolo_weight_file,np.float32)
+    data=data[4:]
+    
+    index = 0
+    for layer in model.layers:
+        shape = [w.shape for w in layer.get_weights()]
+        if shape != []:
+            kshape,bshape = shape
+            bia = data[index:index+np.prod(bshape)].reshape(bshape)
+            index += np.prod(bshape)
+            ker = data[index:index+np.prod(kshape)].reshape(kshape)
+            index += np.prod(kshape)
+            layer.set_weights([ker,bia])
+
+load_weights(model,'./yolo-tiny.weights')
+```
+
+
+```python
+image = plt.imread('./test_images/test1.jpg')
+image_crop = image[300:650,500:,:]
+resized = cv2.resize(image_crop,(448,448))
+```
+
+
+```python
+batch = np.transpose(resized,(2,0,1))
+batch = np.array([((batch/255.) - 0.5)])
+out = model.predict(batch)
+boxes = yolo_boxes(out[0], threshold = 0.15)
+```
+
+
+```python
+plt.figure()
+plt.title("original")
+plt.imshow(image)
+plt.figure()
+plt.title("localized")
+plt.imshow(draw_box(boxes,plt.imread("./test_images/test1.jpg"),[[500,1280],[300,650]]))
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fa442da34e0>
+
+
+
+
+![png](output_19_1.png)
+
+
+
+![png](output_19_2.png)
+
+
+#### Sliding window search
+
+Since YOLO will output the 7X7X30 result, loop through the gird can get the prediction result. 
+The model will return two type result, Class probability map and Bounding Box & confidence
+
+probability map:  is a map of prob. of which class belongs with. 7X7X20 <~ 20 classes
+BBOX, confidence: is the prediction of classes 7X7X(2*5)
+
+####  How did you decide what scales to search and how much to overlap windows?
+I combine the BBOX with IOU larger than 0.4. 
+```
+    boxes.sort(key=lambda b:b.prob,reverse=True)
+    for i in range(len(boxes)):
+        boxi = boxes[i]
+        if boxi.prob == 0: continue
+        for j in range(i + 1, len(boxes)):
+            boxj = boxes[j]
+            if box_iou(boxi, boxj) >= .4:
+                boxes[j].prob = 0.
+    boxes = [b for b in boxes if b.prob > 0.]
+```
+
+#### Show some examples of test images to demonstrate how your pipeline is working. How did you optimize the performance of your classifier?
+
+
+```python
+images = [plt.imread(file) for file in glob.glob('./test_images/*.jpg')]
+batch = np.array([np.transpose(cv2.resize(image[300:650,500:,:],(448,448)),(2,0,1)) 
+                  for image in images])
+out = model.predict(((batch/255.)-0.5))
+
+for i in range(len(batch)):
+    plt.figure()
+    plt.title("original")   
+    plt.imshow(images[i]) 
+    plt.figure()
+    plt.title("localized")    
+    boxes = yolo_boxes(out[i], threshold = 0.17)
+    plt.imshow(draw_box(boxes,images[i],[[500,1280],[300,650]]))
+    plt.savefig("./output_images/"+str(i)+".png")
+```
+
+
+![png](output_22_0.png)
+
+
+
+![png](output_22_1.png)
+
+
+
+![png](output_22_2.png)
+
+
+
+![png](output_22_3.png)
+
+
+
+![png](output_22_4.png)
+
+
+
+![png](output_22_5.png)
+
+
+
+![png](output_22_6.png)
+
+
+
+![png](output_22_7.png)
+
+
+
+![png](output_22_8.png)
+
+
+
+![png](output_22_9.png)
+
+
+
+![png](output_22_10.png)
+
+
+
+![png](output_22_11.png)
+
+
+## 3. Video Implementation
+#### 3.1 Provide a link to your final video output. Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
+
+#### Define pipeline
+
+
+```python
+def frame_func(image):
+    crop = image[300:650,500:,:]
+    resized = cv2.resize(crop,(448,448))
+    batch = np.array([resized[:,:,0],resized[:,:,1],resized[:,:,2]])
+    out = model.predict(np.array( [ ( (batch/255.)-0.5) ] ))
+    boxes = yolo_boxes(out[0], threshold = 0.15)
+    return draw_box(boxes,image,[[500,1280],[300,650]])
+
+def process_video(source_file_name, output_file_name):
+    white_output = output_file_name
+    clip1 = VideoFileClip(source_file_name)
+    white_clip = clip1.fl_image(frame_func)
+    %time white_clip.write_videofile(white_output, audio=False)
+```
+
+
+```python
+process_video( "test_video.mp4", "test_video_out.mp4")
+HTML("""
+    <video controls src="{0}" loop=1 autoplay width=100%/> 
+    """.format('test_video_out.mp4')
+)
+```
+
+    [MoviePy] >>>> Building video test_video_out.mp4
+    [MoviePy] Writing video test_video_out.mp4
+
+
+     97%|█████████▋| 38/39 [00:19<00:00,  1.97it/s]
+
+
+    [MoviePy] Done.
+    [MoviePy] >>>> Video ready: test_video_out.mp4 
+    
+    CPU times: user 2min 10s, sys: 4.63 s, total: 2min 14s
+    Wall time: 20.1 s
+
+
+
+
+
+
+    <video controls src="test_video_out.mp4" loop=1 autoplay width=100%/> 
+    
+
+
+
+
+```python
+process_video( "project_video.mp4", "project_video_out.mp4")
+HTML("""
+    <video controls src="{0}" loop=1 autoplay width=100%/> 
+    """.format('project_video_out.mp4')
+)
+```
+
+    [MoviePy] >>>> Building video project_video_out.mp4
+    [MoviePy] Writing video project_video_out.mp4
+
+
+     99%|█████████▊| 1244/1261 [11:39<00:09,  1.82it/s]
+
+## 3. Discussion
+#### 3.1 Briefly discuss any problems / issues you faced in your implementation of this project. 
+
+I have try to implement Faster RCNN for object localization, but iy seems have problem in training. Thus i use pre-train YOLO for faster implemenation.
+
+The main challenge of training a network to predict the bounding box. The network implementation is the hardest challenage in my faster rcnn implementation, it have to implement rpn and roi layer, too much moving parts. YOLO have a simple structure to localize the bounding box. Although i think Faster RCNN structure can be more stable then YOLO, but YOLO is easier to implement with pre-train weights.
+
+#### 3.2 Where will your pipeline likely fail?
+
+- Samll target object
+    Yolo using 7X7 feature grid to predict object prosition which loose many deatils of target object. The network will miss those data.
+- Vibrating BBOX
+    The bbox keep vibrate through the video
+- BBox size are not prefect. 
+    Since the network is single flow architecture, which do not have other sub- network for refine BBOX position. YOLO architecture show the weakness of predict a full size of target object, for instance the black car in testing video. The BBox predict by YOLOnot always full cover the black car.  
+
+#### 3.3 What could you do to make it more robust?
+
+- Implement Faster RCNN
+    It provide a more stable solution on predict the bounding box, ot use rpn network to predict the BBOX and then push to Roi pooling layer for other work. There are a new paper Masked RCNN, which extend Faster RCNN and provide image segmentation. Faster RCNN architecture have a better potential to implement different problem. 
+
+
+```python
+
+```

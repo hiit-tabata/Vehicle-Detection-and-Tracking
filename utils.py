@@ -39,15 +39,16 @@ def box_iou(a, b):
 
 def yolo_boxes(net_out, threshold = 0.2, sqrt=1.8,C=20, B=2, S=7):
 
-    class_num = 6 # Position for class 'car' in the VOC dataset classes
+    class_num = 6 # class car
     boxes = []
-    SS        =  S * S # number of grid cells
-    prob_size = SS * C # class probabilities
-    conf_size = SS * B # confidences for each grid cell
+    SS        =  S * S 
+    prob_size = SS * C 
+    conf_size = SS * B 
     
     probs = net_out[0 : prob_size]
     confs = net_out[prob_size : (prob_size + conf_size)]
     cords = net_out[(prob_size + conf_size) : ]
+    
     probs = probs.reshape([SS, C])
     confs = confs.reshape([SS, B])
     cords = cords.reshape([SS, B, 4])
@@ -58,7 +59,6 @@ def yolo_boxes(net_out, threshold = 0.2, sqrt=1.8,C=20, B=2, S=7):
             bx.c =  confs[grid, b]
             bx.x = (cords[grid, b, 0] + grid %  S) / S
             bx.y = (cords[grid, b, 1] + grid // S) / S
-            print(cords[grid, b, 2])
             bx.w =  cords[grid, b, 2] ** sqrt 
             bx.h =  cords[grid, b, 3] ** sqrt
             p = probs[grid, :] * bx.c
@@ -104,7 +104,6 @@ def draw_box(boxes,im,crop_dim):
         if bot>height - 1: 
             bot = height - 1
         
-        cv2.rectangle(imgcv1, (left, top), (right, bot), (255,255,0), 5)
-        cv2.putText(imgcv1,"CAR",(left, top-15), cv2.FONT_HERSHEY_COMPLEX_SMALL,1,(255,0,0),2)
+        cv2.rectangle(imgcv1, (left, top), (right, bot), (255,0,0), 3)
 
     return imgcv1
