@@ -6,6 +6,12 @@ from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.core import Flatten, Dense, Activation, Reshape
 
+def maxPool():
+    return MaxPooling2D(pool_size=(2, 2),border_mode='valid')
+
+def getConv1024():
+    return Convolution2D(1024,3,3 ,border_mode='same')
+
 def getNN():
     model = Sequential()
     model.add(Convolution2D(16, 3, 3,input_shape=(3,448,448),border_mode='same',subsample=(1,1)))
@@ -13,24 +19,24 @@ def getNN():
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Convolution2D(32,3,3 ,border_mode='same'))
     model.add(LeakyReLU(alpha=0.1))
-    model.add(MaxPooling2D(pool_size=(2, 2),border_mode='valid'))
+    model.add(maxPool())
     model.add(Convolution2D(64,3,3 ,border_mode='same'))
     model.add(LeakyReLU(alpha=0.1))
-    model.add(MaxPooling2D(pool_size=(2, 2),border_mode='valid'))
+    model.add(maxPool())
     model.add(Convolution2D(128,3,3 ,border_mode='same'))
     model.add(LeakyReLU(alpha=0.1))
-    model.add(MaxPooling2D(pool_size=(2, 2),border_mode='valid'))
+    model.add(maxPool())
     model.add(Convolution2D(256,3,3 ,border_mode='same'))
     model.add(LeakyReLU(alpha=0.1))
-    model.add(MaxPooling2D(pool_size=(2, 2),border_mode='valid'))
+    model.add(maxPool())
     model.add(Convolution2D(512,3,3 ,border_mode='same'))
     model.add(LeakyReLU(alpha=0.1))
-    model.add(MaxPooling2D(pool_size=(2, 2),border_mode='valid'))
-    model.add(Convolution2D(1024,3,3 ,border_mode='same'))
+    model.add(maxPool())
+    model.add(getConv1024())
     model.add(LeakyReLU(alpha=0.1))
-    model.add(Convolution2D(1024,3,3 ,border_mode='same'))
+    model.add(getConv1024())
     model.add(LeakyReLU(alpha=0.1))
-    model.add(Convolution2D(1024,3,3 ,border_mode='same'))
+    model.add(getConv1024())
     model.add(LeakyReLU(alpha=0.1))
     model.add(Flatten())
     model.add(Dense(256))
@@ -41,10 +47,12 @@ def getNN():
 
 class Box:
     def __init__(self):
-        self.x, self.y = float(), float()
-        self.w, self.h = float(), float()
-        self.c = float()
-        self.prob = float()
+        self.x = 0.
+        self.y = 0.
+        self.w = 0.
+        self.h = 0.
+        self.c = 0.
+        self.prob = 0.
 
 def overlap(x1,w1,x2,w2):
     l1 = x1 - w1 / 2.;
@@ -55,27 +63,22 @@ def overlap(x1,w1,x2,w2):
     right = min(r1, r2)
     return right - left;
 
-def box_intersection(a, b):
+def box_intersection_area(a, b):
     w = overlap(a.x, a.w, b.x, b.w);
     h = overlap(a.y, a.h, b.y, b.h);
     if w < 0 or h < 0:
         return 0
     area = w * h
-    # return intersection area of the 2 boxes (a,b)
     return area
 
 def box_union(a, b):
-    i = box_intersection(a, b)
-    u = a.w * a.h + b.w * b.h - i
-    # return area under the union of the 2 boxes (a,b)
-    return u
+    i = box_intersection_area(a, b)
+    return a.w * a.h + b.w * b.h - i
 
 def box_iou(a, b):
-    # return intersection over union (intersection area / union area)
-    return box_intersection(a, b) / box_union(a, b)
+    return box_intersection_area(a, b) / box_union(a, b)
 
-
-def yolo_boxes(net_out, threshold = 0.2, sqrt=1.8,C=20, B=2, S=7):
+def get_boxs(net_out, threshold = 0.2, sqrt=1.8,C=20, B=2, S=7):
 
     class_num = 6 # class car
     boxes = []
@@ -104,6 +107,10 @@ def yolo_boxes(net_out, threshold = 0.2, sqrt=1.8,C=20, B=2, S=7):
             if p[class_num] >= threshold:
                 bx.prob = p[class_num]
                 boxes.append(bx)
+    return boxes
+
+def yolo_boxes(net_out, threshold = 0.2, sqrt=1.8,C=20, B=2, S=7):
+    boxes = get_boxs(net_out,threshold,sqrt,C,B,S)
 
     # combine boxes that are overlap
     boxes.sort(key=lambda b:b.prob,reverse=True)
@@ -119,29 +126,29 @@ def yolo_boxes(net_out, threshold = 0.2, sqrt=1.8,C=20, B=2, S=7):
     return boxes
 
 def draw_box(boxes,im,crop_dim):
-    imgcv1 = im.copy()
+    cp_img = im.copy()
     [xmin, xmax] = crop_dim[0]
     [ymin, ymax] = crop_dim[1]
-    height, width, _ = imgcv1.shape
+    h, w, _ = cp_img.shape
 
     for b in boxes:
         w = xmax - xmin
         h = ymax - ymin
 
-        left  = int ((b.x - b.w/2.) * w) + xmin
-        right = int ((b.x + b.w/2.) * w) + xmin
-        top   = int ((b.y - b.h/2.) * h) + ymin
-        bot   = int ((b.y + b.h/2.) * h) + ymin
+        x1  = int ((b.x - b.w/2.) * w) + xmin
+        x2 = int ((b.x + b.w/2.) * w) + xmin
+        y1   = int ((b.y - b.h/2.) * h) + ymin
+        y1   = int ((b.y + b.h/2.) * h) + ymin
 
-        if left  < 0:
-            left = 0
-        if right > width - 1:
-            right = width - 1
-        if top < 0:
-            top = 0
-        if bot>height - 1:
-            bot = height - 1
+        if x1  < 0:
+            x1 = 0
+        if x2 > w - 1:
+            x2 = w - 1
+        if y1 < 0:
+            y1 = 0
+        if y2>h - 1:
+            y2 = h - 1
 
-        cv2.rectangle(imgcv1, (left, top), (right, bot), (255,0,0), 3)
+        cv2.rectangle(cp_img, (x1, y1), (x2, y2), (255,0,0), 3)
 
-    return imgcv1
+    return cp_img
