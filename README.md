@@ -29,7 +29,7 @@ from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.core import Flatten, Dense, Activation, Reshape
 keras.backend.set_image_dim_ordering('th')
-from utils import Box, yolo_boxes, draw_box
+from utils import Box, detect_box, draw_box
 from moviepy.editor import VideoFileClip
 from IPython.display import HTML
 
@@ -162,7 +162,7 @@ resized = cv2.resize(image_crop,(448,448))
 batch = np.transpose(resized,(2,0,1))
 batch = np.array([((batch/255.) - 0.5)])
 out = model.predict(batch)
-boxes = yolo_boxes(out[0], threshold = 0.15)
+boxes = detect_box(out[0], threshold = 0.15)
 ```
 
 
@@ -222,7 +222,7 @@ for i in range(len(batch)):
     plt.imshow(images[i])
     plt.figure()
     plt.title("localized")    
-    boxes = yolo_boxes(out[i], threshold = 0.17)
+    boxes = detect_box(out[i], threshold = 0.17)
     plt.imshow(draw_box(boxes,images[i],[[500,1280],[300,650]]))
     plt.savefig("./output_images/"+str(i)+".png")
 ```
@@ -280,14 +280,13 @@ for i in range(len(batch)):
 
 #### Define pipeline
 
-
 ```python
 def preocessFrame(image):
-    crop = image[300:650,500:,:]
-    resized = cv2.resize(crop,(448,448))
+    selected_img = image[300:650,500:,:]
+    resized = cv2.resize(selected_img,(448,448))
     batch = np.array([resized[:,:,0],resized[:,:,1],resized[:,:,2]])
     out = model.predict(np.array( [ ( (batch/255.)-0.5) ] ))
-    boxes = yolo_boxes(out[0], threshold = 0.15)
+    boxes = detect_box(out[0], threshold = 0.15)
     return draw_box(boxes,image,[[500,1280],[300,650]])
 
 def process_video(source_file_name, output_file_name):

@@ -109,7 +109,7 @@ def get_boxs(net_out, threshold = 0.2, sqrt=1.8,C=20, B=2, S=7):
                 boxes.append(bx)
     return boxes
 
-def yolo_boxes(net_out, threshold = 0.2, sqrt=1.8,C=20, B=2, S=7):
+def detect_box(net_out, threshold = 0.2, sqrt=1.8,C=20, B=2, S=7):
     boxes = get_boxs(net_out,threshold,sqrt,C,B,S)
 
     # combine boxes that are overlap
