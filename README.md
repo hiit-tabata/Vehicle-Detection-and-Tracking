@@ -141,21 +141,14 @@ plt.title('HOG Visualization')
 
 
 
-
-    <matplotlib.text.Text at 0x7fa44393f908>
-
-
-
-
 ![png](output_13_1.png)
 
 
 ## 2. Vehicle Detection and Tracking
 
+### YOLO Architecture
 
 ![png](YOLO_.png)
-```python
-```
 
 
 ```python
@@ -317,20 +310,7 @@ HTML("""
     [MoviePy] >>>> Building video test_video_out.mp4
     [MoviePy] Writing video test_video_out.mp4
 
-
-     97%|█████████▋| 38/39 [00:19<00:00,  1.97it/s]
-
-
-
-
-
-
     <video controls src="test_video_out.mp4" loop=1 autoplay width=100%/>
-
-
-
-
-
 ```python
 process_video( "project_video.mp4", "project_video_out.mp4")
 HTML("""
