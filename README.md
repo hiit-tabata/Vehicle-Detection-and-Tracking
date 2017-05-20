@@ -143,6 +143,16 @@ plt.title('HOG Visualization')
 
 ![png](output_13_1.png)
 
+#### why you decided to use the YOLO network instead. Please update the writeup to address this point.
+Compare to RCNN, YOLO have a great advantages in without external poposal, single pass in feature extraction, simple architecture compare to RCNN. I plan to train a faster Rcnn to this project, but due the the deadline passes i give up implement faster rcnn in this project. Although Faster RCNN have a better performace, but it is better to implement a simple solusions to this project.
+
+
+#### we would like to see some explanation of what preprocessing methods (if any) were performed on the images. In the code it looks like some cropping, resizing and normalization have been done, please update the writeup to describe these steps and explain why they were used.
+I crop the image, which remove some bottom part and unused parts.
+Then, i also scale the image to meet YOLO requirement, 448 X 448 X 3.
+I normalized image with range -0.5~0.5.
+
+
 
 ## 2. Vehicle Detection and Tracking
 
